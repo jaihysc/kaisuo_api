@@ -918,7 +918,7 @@ extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
         dll->LogFile() << " ";
     }
     args->toHex();
-    dll->LogFile() << "\n";
+	dll->LogFile() << std::endl; // Flush output so log is saved in case executable crashes
 
     void* result = nullptr;
     switch (dllExport) {

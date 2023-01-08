@@ -167,6 +167,7 @@
   <ItemGroup>
     <ClInclude Include="DllExport.h" />
     <ClInclude Include="DllExtern.h" />
+    <ClInclude Include="IProxyBase.h" />
     <ClInclude Include="ISteamAppsProxy.h" />
     <ClInclude Include="ISteamClientProxy.h" />
     <ClInclude Include="SteamProxy.h" />

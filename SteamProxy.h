@@ -1,6 +1,7 @@
 // Holds all proxies
 #pragma once
 
+class ISteamApps;
 class ISteamAppsProxy;
 class ISteamClientProxy;
 
@@ -12,11 +13,13 @@ public:
 	SteamProxy(SteamProxy&) = delete;
 	SteamProxy(SteamProxy&&) = delete;
 
-	// SteamApps() Dll call does not work for some reason
-	//ISteamAppsProxy* SteamApps();
-	ISteamAppsProxy* steamAppsProxy  = nullptr;
+	// Cannot use SteamApps() steam api call to obtain ISteamApps, so it must be initialized manually
+	void InitSteamApps(ISteamApps* steamApps);
+
+	ISteamAppsProxy* SteamApps();
 	ISteamClientProxy* SteamClient();
 
 private:
+	ISteamAppsProxy* steamAppsProxy  = nullptr;
 	ISteamClientProxy* steamClientProxy = nullptr;
 };

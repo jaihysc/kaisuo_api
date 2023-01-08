@@ -12,7 +12,7 @@ Build with Visual Studio, output is placed in `out/`.
 
 Rename `steam_api64.dll` to `steam_api64_original.dll`, place the newly compiled `steam_api64.dll` into the same directory.
 
-A log of called functions is written to `steam_api64.log`.
+A log of calls is written to `steam_api64.log` (dll exports) and `steam_api64_<interface name>.log` (interface methods) in the executable directory.
 
 ## Credits
 
