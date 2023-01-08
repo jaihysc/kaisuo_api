@@ -26,26 +26,26 @@ public:
 		return logFile;
 	}
 
-    std::mutex& Mutex() { return mutex; }
+	std::mutex& Mutex() { return mutex; }
 	SteamProxy& Proxy() { return proxy; }
 
 private:
-    std::ofstream logFile;
-    std::mutex mutex;
+	std::ofstream logFile;
+	std::mutex mutex;
 	SteamProxy proxy;
 } *dll = nullptr;
 
 bool Init() {
 	if (!ExternInit()) return false;
-    try {
-        dll = new Dll();
-    }
-    catch (std::exception& e) {
-        Alert(e.what());
-        return false;
-    }
+	try {
+		dll = new Dll();
+	}
+	catch (std::exception& e) {
+		Alert(e.what());
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 // If you are able to identify a function which de-inits the original dll,
@@ -53,7 +53,7 @@ bool Init() {
 // you can call Deinit. Otherwise we let the OS cleanup
 void Deinit() {
 	ExternDeinit();
-    delete dll;
+	delete dll;
 }
 
 #pragma region Injected Functions
@@ -867,61 +867,61 @@ static void* Inject_g_pSteamClientGameServer() { return nullptr; }
 
 // Struct holding arguments in registers
 struct alignas(16) Arguments {
-    __m64 rcx;
-    __m64 rdx;
-    __m64 r8;
-    __m64 r9;
-    __m128 xmm0;
-    __m128 xmm1;
-    __m128 xmm2;
-    __m128 xmm3;
+	__m64 rcx;
+	__m64 rdx;
+	__m64 r8;
+	__m64 r9;
+	__m128 xmm0;
+	__m128 xmm1;
+	__m128 xmm2;
+	__m128 xmm3;
 
-    BOOL toHex() {
-        dll->LogFile() << std::hex;
+	BOOL toHex() {
+		dll->LogFile() << std::hex;
 
-        dll->LogFile() << "rcx:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 0);
-        dll->LogFile() << " rdx:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 1);
-        dll->LogFile() << " r8:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 2);
-        dll->LogFile() << " r9:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 3);
-        dll->LogFile() << " xmm0:"
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 4 + 8) << " "
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 4);
-        dll->LogFile() << " xmm1:"
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 5 + 8) << " "
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 5);
-        dll->LogFile() << " xmm2:"
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 6 + 8) << " "
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 6);
-        dll->LogFile() << " xmm3:"
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 7 + 8) << " "
-            << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 7);
+		dll->LogFile() << "rcx:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 0);
+		dll->LogFile() << " rdx:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 1);
+		dll->LogFile() << " r8:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 2);
+		dll->LogFile() << " r9:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 3);
+		dll->LogFile() << " xmm0:"
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 4 + 8) << " "
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 4);
+		dll->LogFile() << " xmm1:"
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 5 + 8) << " "
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 5);
+		dll->LogFile() << " xmm2:"
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 6 + 8) << " "
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 6);
+		dll->LogFile() << " xmm3:"
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 7 + 8) << " "
+			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 7);
 
-        dll->LogFile() << std::dec;
-        return TRUE;
-    }
+		dll->LogFile() << std::dec;
+		return TRUE;
+	}
 };
 
 extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
-    size_t padding;
+	size_t padding;
 
-    if (dll == nullptr) {
-        if (!Init()) Alert("Failed to init");
-    }
+	if (dll == nullptr) {
+		if (!Init()) Alert("Failed to init");
+	}
 
-    std::lock_guard<std::mutex> lock(dll->Mutex());
+	std::lock_guard<std::mutex> lock(dll->Mutex());
 	dll->LogFile() << OriginalDllExportsName(dllExport);
 
-    // Align the register values
-    padding = 100 - strlen(OriginalDllExportsName(dllExport));
-    if (padding < 0) padding = 0;
-    for (int i = 0; i < padding; ++i) {
-        dll->LogFile() << " ";
-    }
-    args->toHex();
+	// Align the register values
+	padding = 100 - strlen(OriginalDllExportsName(dllExport));
+	if (padding < 0) padding = 0;
+	for (int i = 0; i < padding; ++i) {
+		dll->LogFile() << " ";
+	}
+	args->toHex();
 	dll->LogFile() << std::endl; // Flush output so log is saved in case executable crashes
 
-    void* result = nullptr;
-    switch (dllExport) {
+	void* result = nullptr;
+	switch (dllExport) {
 	case DllExport::CAssociateWithClanResult_t_RemoveCallResult:
 		result = Inject_CAssociateWithClanResult_t_RemoveCallResult();
 		break;
@@ -3332,6 +3332,6 @@ extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
 		result = Inject_g_pSteamClientGameServer();
 		break;
 
-    }
-    return result;
+	}
+	return result;
 }
