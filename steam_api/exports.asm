@@ -4443,6 +4443,7 @@ pop rbp
 jmp qword ptr [originalDllExports+0498h]
 Proxy_SteamAPI_ISteamClient_GetISteamAppList endp
 
+; Override original
 Proxy_SteamAPI_ISteamClient_GetISteamApps proc
 push rbp
 mov rbp, rsp
@@ -4470,7 +4471,7 @@ mov rcx, [rsp+16*0+32]
 add rsp, 16*8+32
 mov rsp, rbp
 pop rbp
-jmp qword ptr [originalDllExports+04a0h]
+ret ;jmp qword ptr [originalDllExports+04a0h]
 Proxy_SteamAPI_ISteamClient_GetISteamApps endp
 
 Proxy_SteamAPI_ISteamClient_GetISteamController proc

@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iomanip>
 
+#include "steam/steam_api_common.h"
+
 #include "Util.h"
 #include "DllExtern.h"
 #include "SteamProxy.h"
@@ -205,7 +207,17 @@ static void* Inject_SteamAPI_ISteamClient_CreateLocalUser() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_CreateSteamPipe() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_GetIPCCallCount() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_GetISteamAppList() { return nullptr; }
-static void* Inject_SteamAPI_ISteamClient_GetISteamApps() { return nullptr; }
+static void* Inject_SteamAPI_ISteamClient_GetISteamApps(ISteamClient* self, HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) {
+	auto* orig_func = reinterpret_cast<ISteamApps * (*)(ISteamClient*, HSteamUser, HSteamPipe, const char*)>(
+		OriginalDllExports(DllExport::SteamAPI_ISteamClient_GetISteamApps)
+		);
+	auto* orig = orig_func(self, hSteamUser, hSteamPipe, pchVersion);
+
+	if (dll->Proxy().SteamApps() == nullptr) {
+		dll->Proxy().InitSteamApps(orig);
+	}
+	return dll->Proxy().SteamApps();
+}
 static void* Inject_SteamAPI_ISteamClient_GetISteamController() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_GetISteamFriends() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_GetISteamGameSearch() { return nullptr; }
@@ -1293,14 +1305,14 @@ static void* Inject_g_pSteamClientGameServer() { return nullptr; }
 
 // Struct holding arguments in registers
 struct alignas(16) Arguments {
-	__m64 rcx;
-	__m64 rdx;
-	__m64 r8;
-	__m64 r9;
-	__m128 xmm0;
-	__m128 xmm1;
-	__m128 xmm2;
-	__m128 xmm3;
+	alignas(16) __m64 rcx;
+	alignas(16) __m64 rdx;
+	alignas(16) __m64 r8;
+	alignas(16) __m64 r9;
+	alignas(16) __m128 xmm0;
+	alignas(16) __m128 xmm1;
+	alignas(16) __m128 xmm2;
+	alignas(16) __m128 xmm3;
 
 	BOOL toHex() {
 		dll->LogFile() << std::hex;
@@ -1326,6 +1338,22 @@ struct alignas(16) Arguments {
 		return TRUE;
 	}
 };
+static_assert(offsetof(Arguments, rcx) == 0, "Incorrect offset for rcx");
+static_assert(offsetof(Arguments, rdx) == 16, "Incorrect offset for rdx");
+static_assert(offsetof(Arguments, r8) == 32, "Incorrect offset for r8");
+static_assert(offsetof(Arguments, r9) == 48, "Incorrect offset for r9");
+static_assert(offsetof(Arguments, xmm0) == 64, "Incorrect offset for xmm0");
+static_assert(offsetof(Arguments, xmm1) == 80, "Incorrect offset for xmm1");
+static_assert(offsetof(Arguments, xmm2) == 96, "Incorrect offset for xmm2");
+static_assert(offsetof(Arguments, xmm3) == 112, "Incorrect offset for xmm3");
+
+// Reinterpret the register contents as another type
+template <typename TDest, typename TSrc>
+TDest arg_cast(TSrc& reg) {
+	// Cannot cast to wider type since register is 16 bytes max
+	static_assert(sizeof(TDest) <= 16);
+	return *(TDest*)&reg;
+}
 
 extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
 	size_t padding;
@@ -1798,7 +1826,11 @@ extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
 		result = Inject_SteamAPI_ISteamClient_GetISteamAppList();
 		break;
 	case DllExport::SteamAPI_ISteamClient_GetISteamApps:
-		result = Inject_SteamAPI_ISteamClient_GetISteamApps();
+		result = Inject_SteamAPI_ISteamClient_GetISteamApps(
+			arg_cast<ISteamClient*>(args->rcx),
+			arg_cast<HSteamUser>(args->rdx),
+			arg_cast<HSteamPipe>(args->r8),
+			arg_cast<const char*>(args->r9));
 		break;
 	case DllExport::SteamAPI_ISteamClient_GetISteamController:
 		result = Inject_SteamAPI_ISteamClient_GetISteamController();

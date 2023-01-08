@@ -129,14 +129,14 @@ static void* Inject_SteamEncryptedAppTicket_GetUserVariableData() { return nullp
 
 // Struct holding arguments in registers
 struct alignas(16) Arguments {
-	__m64 rcx;
-	__m64 rdx;
-	__m64 r8;
-	__m64 r9;
-	__m128 xmm0;
-	__m128 xmm1;
-	__m128 xmm2;
-	__m128 xmm3;
+	alignas(16) __m64 rcx;
+	alignas(16) __m64 rdx;
+	alignas(16) __m64 r8;
+	alignas(16) __m64 r9;
+	alignas(16) __m128 xmm0;
+	alignas(16) __m128 xmm1;
+	alignas(16) __m128 xmm2;
+	alignas(16) __m128 xmm3;
 
 	BOOL toHex() {
 		dll->LogFile() << std::hex;
@@ -162,6 +162,14 @@ struct alignas(16) Arguments {
 		return TRUE;
 	}
 };
+static_assert(offsetof(Arguments, rcx) == 0, "Incorrect offset for rcx");
+static_assert(offsetof(Arguments, rdx) == 16, "Incorrect offset for rdx");
+static_assert(offsetof(Arguments, r8) == 32, "Incorrect offset for r8");
+static_assert(offsetof(Arguments, r9) == 48, "Incorrect offset for r9");
+static_assert(offsetof(Arguments, xmm0) == 64, "Incorrect offset for xmm0");
+static_assert(offsetof(Arguments, xmm1) == 80, "Incorrect offset for xmm1");
+static_assert(offsetof(Arguments, xmm2) == 96, "Incorrect offset for xmm2");
+static_assert(offsetof(Arguments, xmm3) == 112, "Incorrect offset for xmm3");
 
 extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
 	size_t padding;
