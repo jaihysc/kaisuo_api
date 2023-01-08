@@ -1,11 +1,14 @@
 #include "DllExtern.h"
 
+#include <PathCch.h>
+#pragma comment(lib, "pathcch.lib")
+
 #include "Util.h"
 
 extern "C" {
-    HMODULE originalDll;
-    FARPROC originalDllExports[803];
-    const char* originalDllExportsName[] = {
+	HMODULE originalDll;
+	FARPROC originalDllExports[803];
+	const char* originalDllExportsName[] = {
 		"CAssociateWithClanResult_t_RemoveCallResult",
 		"CAssociateWithClanResult_t_SetCallResult",
 		"CCheckFileSignature_t_RemoveCallResult",
@@ -810,7 +813,7 @@ extern "C" {
 		"Steam_RunCallbacks",
 		"g_pSteamClientGameServer",
 
-    };
+	};
 }
 
 HMODULE OriginalDll() {
@@ -826,10 +829,30 @@ const char* OriginalDllExportsName(DllExport dllExport) {
 }
 
 bool ExternInit() {
-	if ((originalDll = LoadLibraryW(L"steam_api64_original.dll")) == NULL) {
+	// Search for original dll in the same directory as the proxy dll
+	HMODULE thisDll;
+	if (!GetModuleHandleExW(
+		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+		(LPCWSTR)&ExternInit,
+		&thisDll)) {
+		Alert("Failed to get handle to this dll");
+		return false;
+	}
+	wchar_t thisDllPath[MAX_PATH];
+	if (!GetModuleFileNameW(thisDll, thisDllPath, MAX_PATH)) {
+		Alert("Failed to get path to this dll");
+		return false;
+	}
+	if (PathCchRemoveFileSpec(thisDllPath, MAX_PATH) != S_OK) {
+		Alert("Failed to get directory to this dll");
+		return false;
+	}
+	wcscat_s(thisDllPath, MAX_PATH, L"\\steam_api64_original.dll");
+	if ((originalDll = LoadLibraryW(thisDllPath)) == NULL) {
 		Alert("Failed to load original dll");
 		return false;
 	}
+
 	for (int i = 0; i < 803; ++i) {
 		originalDllExports[i] = GetProcAddress(originalDll, originalDllExportsName[i]);
 	}
