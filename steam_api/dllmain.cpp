@@ -205,12 +205,11 @@ static void* Inject_SteamAPI_ISteamClient_CreateSteamPipe() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_GetIPCCallCount() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_GetISteamAppList() { return nullptr; }
 static void* Inject_SteamAPI_ISteamClient_GetISteamApps(ISteamClient* self, HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) {
-	auto* orig_func = reinterpret_cast<ISteamApps * (*)(ISteamClient*, HSteamUser, HSteamPipe, const char*)>(
-		OriginalDllExports(DllExport::SteamAPI_ISteamClient_GetISteamApps)
-		);
-	auto* orig = orig_func(self, hSteamUser, hSteamPipe, pchVersion);
-
 	if (dll->Proxy().SteamApps() == nullptr) {
+		auto* orig_func = reinterpret_cast<ISteamApps * (*)(ISteamClient*, HSteamUser, HSteamPipe, const char*)>(
+			OriginalDllExports(DllExport::SteamAPI_ISteamClient_GetISteamApps)
+			);
+		auto* orig = orig_func(self, hSteamUser, hSteamPipe, pchVersion);
 		dll->Proxy().InitSteamApps(orig);
 	}
 	return dll->Proxy().SteamApps();
@@ -1249,7 +1248,14 @@ static void* Inject_SteamAPI_servernetadr_t_SetConnectionPort() { return nullptr
 static void* Inject_SteamAPI_servernetadr_t_SetIP() { return nullptr; }
 static void* Inject_SteamAPI_servernetadr_t_SetQueryPort() { return nullptr; }
 static void* Inject_SteamAppList() { return nullptr; }
-static void* Inject_SteamApps() { return nullptr; }
+static void* Inject_SteamApps() {
+	if (dll->Proxy().SteamApps() == nullptr) {
+		auto* orig_func = reinterpret_cast<ISteamApps* (*)()>(OriginalDllExports(DllExport::SteamApps));
+		auto* orig = orig_func();
+		dll->Proxy().InitSteamApps(orig);
+	}
+	return dll->Proxy().SteamApps();
+}
 static void* Inject_SteamClient() {
 	return dll->Proxy().SteamClient();
 }

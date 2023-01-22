@@ -4962,7 +4962,7 @@ Proxy_SteamAppList proc
 Proxy_SteamAppList endp
 
 Proxy_SteamApps proc
-	fwdcall 049fh
+	ovrdcall 049fh
 Proxy_SteamApps endp
 
 ; Override original
