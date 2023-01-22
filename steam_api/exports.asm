@@ -61,10 +61,45 @@ ovrdcall macro idx
 	ret
 endm
 
-onExportFuncCall proto C
+; For class proxies
+doinject macro injectfunc
+	; Preserve all volatile registers
+	push rax
+	push rcx
+	push rdx
+	push r8
+	push r9
+	push r10
+	push r11
+	sub rsp, 16*6+32
+	movdqu [rsp+16*0+32], xmm0
+	movdqu [rsp+16*1+32], xmm1
+	movdqu [rsp+16*2+32], xmm2
+	movdqu [rsp+16*3+32], xmm3
+	movdqu [rsp+16*4+32], xmm4
+	movdqu [rsp+16*5+32], xmm5
+
+	call injectfunc
+
+	movdqu xmm0, [rsp+16*0+32]
+	movdqu xmm1, [rsp+16*1+32]
+	movdqu xmm2, [rsp+16*2+32]
+	movdqu xmm3, [rsp+16*3+32]
+	movdqu xmm4, [rsp+16*4+32]
+	movdqu xmm5, [rsp+16*5+32]
+	add rsp, 16*6+32
+	pop r11
+	pop r10
+	pop r9
+	pop r8
+	pop rdx
+	pop rcx
+	pop rax
+	ret
+endm
+
 .data
 extern originalDllExports : qword
-.code
 else
 .model flat, C
 fwdcall macro idx
@@ -102,12 +137,97 @@ ovrdcall macro idx
 	ret
 endm
 
-onExportFuncCall proto C
+; For class proxies
+doinject macro injectfunc
+	call injectfunc
+	ret
+endm
+
 .data
 extern originalDllExports : dword
-.code
 endif ; rax
 
+onExportFuncCall proto C
+
+; For proxying classes
+; DoInject_<name> will call Inject_<name> which is the c++ code we insert into each call
+; ISteamApps
+extern Inject_BIsSubscribed : proto C
+extern Inject_BIsLowViolence : proto C
+extern Inject_BIsCybercafe : proto C
+extern Inject_BIsVACBanned : proto C
+extern Inject_GetCurrentGameLanguage : proto C
+extern Inject_GetAvailableGameLanguages : proto C
+extern Inject_BIsSubscribedApp : proto C
+extern Inject_BIsDlcInstalled : proto C
+extern Inject_GetEarliestPurchaseUnixTime : proto C
+extern Inject_BIsSubscribedFromFreeWeekend : proto C
+extern Inject_GetDLCCount : proto C
+extern Inject_BGetDLCDataByIndex : proto C
+extern Inject_InstallDLC : proto C
+extern Inject_UninstallDLC : proto C
+extern Inject_RequestAppProofOfPurchaseKey : proto C
+extern Inject_GetCurrentBetaName : proto C
+extern Inject_MarkContentCorrupt : proto C
+extern Inject_GetInstalledDepots : proto C
+extern Inject_GetAppInstallDir : proto C
+extern Inject_BIsAppInstalled : proto C
+extern Inject_GetAppOwner : proto C
+extern Inject_GetLaunchQueryParam : proto C
+extern Inject_GetDlcDownloadProgress : proto C
+extern Inject_GetAppBuildId : proto C
+extern Inject_RequestAllProofOfPurchaseKeys : proto C
+extern Inject_GetFileDetails : proto C
+extern Inject_GetLaunchCommandLine : proto C
+extern Inject_BIsSubscribedFromFamilySharing : proto C
+extern Inject_BIsTimedTrial : proto C
+extern Inject_SetDlcContext : proto C
+
+; ISteamClient
+extern Inject_CreateSteamPipe : proto C
+extern Inject_BReleaseSteamPipe : proto C
+extern Inject_ConnectToGlobalUser : proto C
+extern Inject_CreateLocalUser : proto C
+extern Inject_ReleaseUser : proto C
+extern Inject_GetISteamUser : proto C
+extern Inject_GetISteamGameServer : proto C
+extern Inject_SetLocalIPBinding : proto C
+extern Inject_GetISteamFriends : proto C
+extern Inject_GetISteamUtils : proto C
+extern Inject_GetISteamMatchmaking : proto C
+extern Inject_GetISteamMatchmakingServers : proto C
+extern Inject_GetISteamGenericInterface : proto C
+extern Inject_GetISteamUserStats : proto C
+extern Inject_GetISteamGameServerStats : proto C
+extern Inject_GetISteamApps : proto C
+extern Inject_GetISteamNetworking : proto C
+extern Inject_GetISteamRemoteStorage : proto C
+extern Inject_GetISteamScreenshots : proto C
+extern Inject_GetISteamGameSearch : proto C
+extern Inject_RunFrame : proto C
+extern Inject_GetIPCCallCount : proto C
+extern Inject_SetWarningMessageHook : proto C
+extern Inject_BShutdownIfAllPipesClosed : proto C
+extern Inject_GetISteamHTTP : proto C
+extern Inject_GetISteamUnifiedMessages : proto C
+extern Inject_GetISteamController : proto C
+extern Inject_GetISteamUGC : proto C
+extern Inject_GetISteamAppList : proto C
+extern Inject_GetISteamMusic : proto C
+extern Inject_GetISteamMusicRemote : proto C
+extern Inject_GetISteamHTMLSurface : proto C
+extern Inject_Set_SteamAPI_CPostAPIResultInProcess : proto C
+extern Inject_Remove_SteamAPI_CPostAPIResultInProcess : proto C
+extern Inject_Set_SteamAPI_CCheckCallbackRegisteredInProcess : proto C
+extern Inject_GetISteamInventory : proto C
+extern Inject_GetISteamVideo : proto C
+extern Inject_GetISteamParentalSettings : proto C
+extern Inject_GetISteamInput : proto C
+extern Inject_GetISteamParties : proto C
+extern Inject_GetISteamRemotePlay : proto C
+extern Inject_DestroyAllInterfaces : proto C
+
+.code
 Proxy_CAssociateWithClanResult_t_RemoveCallResult proc
 	fwdcall 00h
 Proxy_CAssociateWithClanResult_t_RemoveCallResult endp
@@ -5025,4 +5145,296 @@ Proxy_Steam_RunCallbacks endp
 Proxy_g_pSteamClientGameServer proc
 	fwdcall 04cch
 Proxy_g_pSteamClientGameServer endp
+
+; Class proxies
+
+; ISteamApps
+DoInject_BIsSubscribed proc
+	doinject Inject_BIsSubscribed
+DoInject_BIsSubscribed endp
+
+DoInject_BIsLowViolence proc
+	doinject Inject_BIsLowViolence
+DoInject_BIsLowViolence endp
+
+DoInject_BIsCybercafe proc
+	doinject Inject_BIsCybercafe
+DoInject_BIsCybercafe endp
+
+DoInject_BIsVACBanned proc
+	doinject Inject_BIsVACBanned
+DoInject_BIsVACBanned endp
+
+DoInject_GetCurrentGameLanguage proc
+	doinject Inject_GetCurrentGameLanguage
+DoInject_GetCurrentGameLanguage endp
+
+DoInject_GetAvailableGameLanguages proc
+	doinject Inject_GetAvailableGameLanguages
+DoInject_GetAvailableGameLanguages endp
+
+DoInject_BIsSubscribedApp proc
+	doinject Inject_BIsSubscribedApp
+DoInject_BIsSubscribedApp endp
+
+DoInject_BIsDlcInstalled proc
+	doinject Inject_BIsDlcInstalled
+DoInject_BIsDlcInstalled endp
+
+DoInject_GetEarliestPurchaseUnixTime proc
+	doinject Inject_GetEarliestPurchaseUnixTime
+DoInject_GetEarliestPurchaseUnixTime endp
+
+DoInject_BIsSubscribedFromFreeWeekend proc
+	doinject Inject_BIsSubscribedFromFreeWeekend
+DoInject_BIsSubscribedFromFreeWeekend endp
+
+DoInject_GetDLCCount proc
+	doinject Inject_GetDLCCount
+DoInject_GetDLCCount endp
+
+DoInject_BGetDLCDataByIndex proc
+	doinject Inject_BGetDLCDataByIndex
+DoInject_BGetDLCDataByIndex endp
+
+DoInject_InstallDLC proc
+	doinject Inject_InstallDLC
+DoInject_InstallDLC endp
+
+DoInject_UninstallDLC proc
+	doinject Inject_UninstallDLC
+DoInject_UninstallDLC endp
+
+DoInject_RequestAppProofOfPurchaseKey proc
+	doinject Inject_RequestAppProofOfPurchaseKey
+DoInject_RequestAppProofOfPurchaseKey endp
+
+DoInject_GetCurrentBetaName proc
+	doinject Inject_GetCurrentBetaName
+DoInject_GetCurrentBetaName endp
+
+DoInject_MarkContentCorrupt proc
+	doinject Inject_MarkContentCorrupt
+DoInject_MarkContentCorrupt endp
+
+DoInject_GetInstalledDepots proc
+	doinject Inject_GetInstalledDepots
+DoInject_GetInstalledDepots endp
+
+DoInject_GetAppInstallDir proc
+	doinject Inject_GetAppInstallDir
+DoInject_GetAppInstallDir endp
+
+DoInject_BIsAppInstalled proc
+	doinject Inject_BIsAppInstalled
+DoInject_BIsAppInstalled endp
+
+DoInject_GetAppOwner proc
+	doinject Inject_GetAppOwner
+DoInject_GetAppOwner endp
+
+DoInject_GetLaunchQueryParam proc
+	doinject Inject_GetLaunchQueryParam
+DoInject_GetLaunchQueryParam endp
+
+DoInject_GetDlcDownloadProgress proc
+	doinject Inject_GetDlcDownloadProgress
+DoInject_GetDlcDownloadProgress endp
+
+DoInject_GetAppBuildId proc
+	doinject Inject_GetAppBuildId
+DoInject_GetAppBuildId endp
+
+DoInject_RequestAllProofOfPurchaseKeys proc
+	doinject Inject_RequestAllProofOfPurchaseKeys
+DoInject_RequestAllProofOfPurchaseKeys endp
+
+DoInject_GetFileDetails proc
+	doinject Inject_GetFileDetails
+DoInject_GetFileDetails endp
+
+DoInject_GetLaunchCommandLine proc
+	doinject Inject_GetLaunchCommandLine
+DoInject_GetLaunchCommandLine endp
+
+DoInject_BIsSubscribedFromFamilySharing proc
+	doinject Inject_BIsSubscribedFromFamilySharing
+DoInject_BIsSubscribedFromFamilySharing endp
+
+DoInject_BIsTimedTrial proc
+	doinject Inject_BIsTimedTrial
+DoInject_BIsTimedTrial endp
+
+DoInject_SetDlcContext proc
+	doinject Inject_SetDlcContext
+DoInject_SetDlcContext endp
+
+; ISteamClient
+DoInject_CreateSteamPipe proc
+	doinject Inject_CreateSteamPipe
+DoInject_CreateSteamPipe endp
+
+DoInject_BReleaseSteamPipe proc
+	doinject Inject_BReleaseSteamPipe
+DoInject_BReleaseSteamPipe endp
+
+DoInject_ConnectToGlobalUser proc
+	doinject Inject_ConnectToGlobalUser
+DoInject_ConnectToGlobalUser endp
+
+DoInject_CreateLocalUser proc
+	doinject Inject_CreateLocalUser
+DoInject_CreateLocalUser endp
+
+DoInject_ReleaseUser proc
+	doinject Inject_ReleaseUser
+DoInject_ReleaseUser endp
+
+DoInject_GetISteamUser proc
+	doinject Inject_GetISteamUser
+DoInject_GetISteamUser endp
+
+DoInject_GetISteamGameServer proc
+	doinject Inject_GetISteamGameServer
+DoInject_GetISteamGameServer endp
+
+DoInject_SetLocalIPBinding proc
+	doinject Inject_SetLocalIPBinding
+DoInject_SetLocalIPBinding endp
+
+DoInject_GetISteamFriends proc
+	doinject Inject_GetISteamFriends
+DoInject_GetISteamFriends endp
+
+DoInject_GetISteamUtils proc
+	doinject Inject_GetISteamUtils
+DoInject_GetISteamUtils endp
+
+DoInject_GetISteamMatchmaking proc
+	doinject Inject_GetISteamMatchmaking
+DoInject_GetISteamMatchmaking endp
+
+DoInject_GetISteamMatchmakingServers proc
+	doinject Inject_GetISteamMatchmakingServers
+DoInject_GetISteamMatchmakingServers endp
+
+DoInject_GetISteamGenericInterface proc
+	doinject Inject_GetISteamGenericInterface
+DoInject_GetISteamGenericInterface endp
+
+DoInject_GetISteamUserStats proc
+	doinject Inject_GetISteamUserStats
+DoInject_GetISteamUserStats endp
+
+DoInject_GetISteamGameServerStats proc
+	doinject Inject_GetISteamGameServerStats
+DoInject_GetISteamGameServerStats endp
+
+DoInject_GetISteamApps proc
+	doinject Inject_GetISteamApps
+DoInject_GetISteamApps endp
+
+DoInject_GetISteamNetworking proc
+	doinject Inject_GetISteamNetworking
+DoInject_GetISteamNetworking endp
+
+DoInject_GetISteamRemoteStorage proc
+	doinject Inject_GetISteamRemoteStorage
+DoInject_GetISteamRemoteStorage endp
+
+DoInject_GetISteamScreenshots proc
+	doinject Inject_GetISteamScreenshots
+DoInject_GetISteamScreenshots endp
+
+DoInject_GetISteamGameSearch proc
+	doinject Inject_GetISteamGameSearch
+DoInject_GetISteamGameSearch endp
+
+DoInject_RunFrame proc
+	doinject Inject_RunFrame
+DoInject_RunFrame endp
+
+DoInject_GetIPCCallCount proc
+	doinject Inject_GetIPCCallCount
+DoInject_GetIPCCallCount endp
+
+DoInject_SetWarningMessageHook proc
+	doinject Inject_SetWarningMessageHook
+DoInject_SetWarningMessageHook endp
+
+DoInject_BShutdownIfAllPipesClosed proc
+	doinject Inject_BShutdownIfAllPipesClosed
+DoInject_BShutdownIfAllPipesClosed endp
+
+DoInject_GetISteamHTTP proc
+	doinject Inject_GetISteamHTTP
+DoInject_GetISteamHTTP endp
+
+DoInject_GetISteamUnifiedMessages proc
+	doinject Inject_GetISteamUnifiedMessages
+DoInject_GetISteamUnifiedMessages endp
+
+DoInject_GetISteamController proc
+	doinject Inject_GetISteamController
+DoInject_GetISteamController endp
+
+DoInject_GetISteamUGC proc
+	doinject Inject_GetISteamUGC
+DoInject_GetISteamUGC endp
+
+DoInject_GetISteamAppList proc
+	doinject Inject_GetISteamAppList
+DoInject_GetISteamAppList endp
+
+DoInject_GetISteamMusic proc
+	doinject Inject_GetISteamMusic
+DoInject_GetISteamMusic endp
+
+DoInject_GetISteamMusicRemote proc
+	doinject Inject_GetISteamMusicRemote
+DoInject_GetISteamMusicRemote endp
+
+DoInject_GetISteamHTMLSurface proc
+	doinject Inject_GetISteamHTMLSurface
+DoInject_GetISteamHTMLSurface endp
+
+DoInject_Set_SteamAPI_CPostAPIResultInProcess proc
+	doinject Inject_Set_SteamAPI_CPostAPIResultInProcess
+DoInject_Set_SteamAPI_CPostAPIResultInProcess endp
+
+DoInject_Remove_SteamAPI_CPostAPIResultInProcess proc
+	doinject Inject_Remove_SteamAPI_CPostAPIResultInProcess
+DoInject_Remove_SteamAPI_CPostAPIResultInProcess endp
+
+DoInject_Set_SteamAPI_CCheckCallbackRegisteredInProcess proc
+	doinject Inject_Set_SteamAPI_CCheckCallbackRegisteredInProcess
+DoInject_Set_SteamAPI_CCheckCallbackRegisteredInProcess endp
+
+DoInject_GetISteamInventory proc
+	doinject Inject_GetISteamInventory
+DoInject_GetISteamInventory endp
+
+DoInject_GetISteamVideo proc
+	doinject Inject_GetISteamVideo
+DoInject_GetISteamVideo endp
+
+DoInject_GetISteamParentalSettings proc
+	doinject Inject_GetISteamParentalSettings
+DoInject_GetISteamParentalSettings endp
+
+DoInject_GetISteamInput proc
+	doinject Inject_GetISteamInput
+DoInject_GetISteamInput endp
+
+DoInject_GetISteamParties proc
+	doinject Inject_GetISteamParties
+DoInject_GetISteamParties endp
+
+DoInject_GetISteamRemotePlay proc
+	doinject Inject_GetISteamRemotePlay
+DoInject_GetISteamRemotePlay endp
+
+DoInject_DestroyAllInterfaces proc
+	doinject Inject_DestroyAllInterfaces
+DoInject_DestroyAllInterfaces endp
 end

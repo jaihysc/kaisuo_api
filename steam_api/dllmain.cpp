@@ -1299,6 +1299,88 @@ static void* Inject_Steam_RunCallbacks() { return nullptr; }
 static void* Inject_g_pSteamClientGameServer() { return nullptr; }
 
 #pragma endregion
+#pragma region Injected Methods
+// + 7 to skip the Inject_ prefix
+#define PROXY_LOG() do { std::lock_guard<std::mutex> lock(dll->Mutex()); dll->LogFile() << "Method: " << __FUNCTION__ + 7 << std::endl; } while (0)
+extern "C" {
+	// ISteamApps
+	void Inject_BIsSubscribed() { PROXY_LOG(); }
+	void Inject_BIsLowViolence() { PROXY_LOG(); }
+	void Inject_BIsCybercafe() { PROXY_LOG(); }
+	void Inject_BIsVACBanned() { PROXY_LOG(); }
+	void Inject_GetCurrentGameLanguage() { PROXY_LOG(); }
+	void Inject_GetAvailableGameLanguages() { PROXY_LOG(); }
+	void Inject_BIsSubscribedApp() { PROXY_LOG(); }
+	void Inject_BIsDlcInstalled() { PROXY_LOG(); }
+	void Inject_GetEarliestPurchaseUnixTime() { PROXY_LOG(); }
+	void Inject_BIsSubscribedFromFreeWeekend() { PROXY_LOG(); }
+	void Inject_GetDLCCount() { PROXY_LOG(); }
+	void Inject_BGetDLCDataByIndex() { PROXY_LOG(); }
+	void Inject_InstallDLC() { PROXY_LOG(); }
+	void Inject_UninstallDLC() { PROXY_LOG(); }
+	void Inject_RequestAppProofOfPurchaseKey() { PROXY_LOG(); }
+	void Inject_GetCurrentBetaName() { PROXY_LOG(); }
+	void Inject_MarkContentCorrupt() { PROXY_LOG(); }
+	void Inject_GetInstalledDepots() { PROXY_LOG(); }
+	void Inject_GetAppInstallDir() { PROXY_LOG(); }
+	void Inject_BIsAppInstalled() { PROXY_LOG(); }
+	void Inject_GetAppOwner() { PROXY_LOG(); }
+	void Inject_GetLaunchQueryParam() { PROXY_LOG(); }
+	void Inject_GetDlcDownloadProgress() { PROXY_LOG(); }
+	void Inject_GetAppBuildId() { PROXY_LOG(); }
+	void Inject_RequestAllProofOfPurchaseKeys() { PROXY_LOG(); }
+	void Inject_GetFileDetails() { PROXY_LOG(); }
+	void Inject_GetLaunchCommandLine() { PROXY_LOG(); }
+	void Inject_BIsSubscribedFromFamilySharing() { PROXY_LOG(); }
+	void Inject_BIsTimedTrial() { PROXY_LOG(); }
+	void Inject_SetDlcContext() { PROXY_LOG(); }
+
+	// ISteamClient
+	void Inject_CreateSteamPipe() { PROXY_LOG(); }
+	void Inject_BReleaseSteamPipe() { PROXY_LOG(); }
+	void Inject_ConnectToGlobalUser() { PROXY_LOG(); }
+	void Inject_CreateLocalUser() { PROXY_LOG(); }
+	void Inject_ReleaseUser() { PROXY_LOG(); }
+	void Inject_GetISteamUser() { PROXY_LOG(); }
+	void Inject_GetISteamGameServer() { PROXY_LOG(); }
+	void Inject_SetLocalIPBinding() { PROXY_LOG(); }
+	void Inject_GetISteamFriends() { PROXY_LOG(); }
+	void Inject_GetISteamUtils() { PROXY_LOG(); }
+	void Inject_GetISteamMatchmaking() { PROXY_LOG(); }
+	void Inject_GetISteamMatchmakingServers() { PROXY_LOG(); }
+	void Inject_GetISteamGenericInterface() { PROXY_LOG(); }
+	void Inject_GetISteamUserStats() { PROXY_LOG(); }
+	void Inject_GetISteamGameServerStats() { PROXY_LOG(); }
+	void Inject_GetISteamApps() { PROXY_LOG(); }
+	void Inject_GetISteamNetworking() { PROXY_LOG(); }
+	void Inject_GetISteamRemoteStorage() { PROXY_LOG(); }
+	void Inject_GetISteamScreenshots() { PROXY_LOG(); }
+	void Inject_GetISteamGameSearch() { PROXY_LOG(); }
+	void Inject_RunFrame() { PROXY_LOG(); }
+	void Inject_GetIPCCallCount() { PROXY_LOG(); }
+	void Inject_SetWarningMessageHook() { PROXY_LOG(); }
+	void Inject_BShutdownIfAllPipesClosed() { PROXY_LOG(); }
+	void Inject_GetISteamHTTP() { PROXY_LOG(); }
+	void Inject_GetISteamUnifiedMessages() { PROXY_LOG(); }
+	void Inject_GetISteamController() { PROXY_LOG(); }
+	void Inject_GetISteamUGC() { PROXY_LOG(); }
+	void Inject_GetISteamAppList() { PROXY_LOG(); }
+	void Inject_GetISteamMusic() { PROXY_LOG(); }
+	void Inject_GetISteamMusicRemote() { PROXY_LOG(); }
+	void Inject_GetISteamHTMLSurface() { PROXY_LOG(); }
+	void Inject_Set_SteamAPI_CPostAPIResultInProcess() { PROXY_LOG(); }
+	void Inject_Remove_SteamAPI_CPostAPIResultInProcess() { PROXY_LOG(); }
+	void Inject_Set_SteamAPI_CCheckCallbackRegisteredInProcess() { PROXY_LOG(); }
+	void Inject_GetISteamInventory() { PROXY_LOG(); }
+	void Inject_GetISteamVideo() { PROXY_LOG(); }
+	void Inject_GetISteamParentalSettings() { PROXY_LOG(); }
+	void Inject_GetISteamInput() { PROXY_LOG(); }
+	void Inject_GetISteamParties() { PROXY_LOG(); }
+	void Inject_GetISteamRemotePlay() { PROXY_LOG(); }
+	void Inject_DestroyAllInterfaces() { PROXY_LOG(); }
+}
+#undef PROXY_LOG
+#pragma endregion
 
 // Struct holding arguments in registers
 #ifdef BUILD64
