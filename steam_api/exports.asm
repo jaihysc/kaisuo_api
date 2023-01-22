@@ -1,3 +1,4 @@
+ifdef rax
 fwdcall macro idx
 	; Align stack to 16 (Required for Arguments struct)
 	push rbp
@@ -64,6 +65,48 @@ onExportFuncCall proto C
 .data
 extern originalDllExports : qword
 .code
+else
+.model flat, C
+fwdcall macro idx
+	; Align stack to 4 (Required for Arguments struct)
+	push ebp
+	mov ebp, esp
+	and esp, -4
+	; Setup arguments for call
+	push dword ptr idx
+	push ebp ; ebp points to the arguments
+	; Make call
+	call onExportFuncCall
+	; Restore stack
+	sub esp, 8
+	mov esp, ebp
+	pop ebp
+	; Jump to address of original function
+	jmp dword ptr [originalDllExports+idx*4]
+endm
+
+ovrdcall macro idx
+	; Align stack to 4 (Required for Arguments struct)
+	push ebp
+	mov ebp, esp
+	and esp, -4
+	; Setup arguments for call
+	push dword ptr idx
+	push ebp ; ebp points to the arguments
+	; Make call, result in eax
+	call onExportFuncCall
+	; Restore stack
+	sub esp, 8
+	mov esp, ebp
+	pop ebp
+	ret
+endm
+
+onExportFuncCall proto C
+.data
+extern originalDllExports : dword
+.code
+endif ; rax
 
 Proxy_CAssociateWithClanResult_t_RemoveCallResult proc
 	fwdcall 00h

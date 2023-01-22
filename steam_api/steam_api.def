@@ -1,4 +1,4 @@
-LIBRARY steam_api64
+LIBRARY
 EXPORTS
 	CAssociateWithClanResult_t_RemoveCallResult=Proxy_CAssociateWithClanResult_t_RemoveCallResult @1
 	CAssociateWithClanResult_t_SetCallResult=Proxy_CAssociateWithClanResult_t_SetCallResult @2

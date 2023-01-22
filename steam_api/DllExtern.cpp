@@ -1277,7 +1277,7 @@ bool ExternInit() {
 		Alert("Failed to get directory to this dll");
 		return false;
 	}
-	wcscat_s(thisDllPath, MAX_PATH, L"\\steam_api64_original.dll");
+	wcscat_s(thisDllPath, MAX_PATH, L"\\" DLLNAME "_original.dll");
 	if ((originalDll = LoadLibraryW(thisDllPath)) == NULL) {
 		Alert("Failed to load original dll");
 		return false;

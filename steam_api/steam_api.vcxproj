@@ -74,15 +74,27 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\;$(IncludePath)</IncludePath>
-    <OutDir>..\out\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>..\out\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>..\out\$(Configuration)\</OutDir>
+    <IntDir>..\out\$(Configuration)\steam_api64\</IntDir>
     <TargetName>steam_api64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\;$(IncludePath)</IncludePath>
-    <OutDir>..\out\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>..\out\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>..\out\$(Configuration)\</OutDir>
+    <IntDir>..\out\$(Configuration)\steam_api64\</IntDir>
     <TargetName>steam_api64</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\out\$(Configuration)\</OutDir>
+    <IntDir>..\out\$(Configuration)\steam_api\</IntDir>
+    <TargetName>steam_api</TargetName>
+    <IncludePath>..\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\out\$(Configuration)\</OutDir>
+    <IntDir>..\out\$(Configuration)\steam_api\</IntDir>
+    <TargetName>steam_api</TargetName>
+    <IncludePath>..\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,13 +102,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;STEAMAPI_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <ModuleDefinitionFile>steam_api.def</ModuleDefinitionFile>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,8 +123,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;STEAMAPI_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -116,6 +134,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <ModuleDefinitionFile>steam_api.def</ModuleDefinitionFile>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -171,6 +191,7 @@
     <ClInclude Include="IProxyBase.h" />
     <ClInclude Include="ISteamAppsProxy.h" />
     <ClInclude Include="ISteamClientProxy.h" />
+    <ClInclude Include="Platform.h" />
     <ClInclude Include="SteamProxy.h" />
     <ClInclude Include="Util.h" />
   </ItemGroup>

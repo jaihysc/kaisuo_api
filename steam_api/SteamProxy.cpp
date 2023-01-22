@@ -12,7 +12,7 @@ SteamProxy::~SteamProxy() {
 
 void SteamProxy::InitSteamApps(ISteamApps* steamApps) {
 	ASSERT(steamApps != nullptr);
-	steamAppsProxy = new ISteamAppsProxy(steamApps, "steam_api64_ISteamApps.log");
+	steamAppsProxy = new ISteamAppsProxy(steamApps, DLLNAME "_ISteamApps.log");
 }
 
 ISteamAppsProxy* SteamProxy::SteamApps() {
@@ -22,7 +22,7 @@ ISteamAppsProxy* SteamProxy::SteamApps() {
 ISteamClientProxy* SteamProxy::SteamClient() {
 	if (steamClientProxy == nullptr) {
 		auto* steamClient = reinterpret_cast<ISteamClient*>(OriginalDllExports(DllExport::SteamClient)());
-		steamClientProxy = new ISteamClientProxy(steamClient, this, "steam_api64_ISteamClient.log");
+		steamClientProxy = new ISteamClientProxy(steamClient, this, DLLNAME "_ISteamClient.log");
 	}
 	return steamClientProxy;
 }

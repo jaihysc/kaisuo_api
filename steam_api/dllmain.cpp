@@ -1,7 +1,3 @@
-
-#include <Windows.h>
-#include <xmmintrin.h>
-
 #include <mutex>
 #include <iostream>
 #include <fstream>
@@ -9,15 +5,16 @@
 
 #include "steam/steam_api_common.h"
 
-#include "Util.h"
 #include "DllExtern.h"
+#include "Platform.h"
 #include "SteamProxy.h"
+#include "Util.h"
 
 class Dll
 {
 public:
 	Dll() {
-		logFile.open("steam_api64.log", std::ofstream::out);
+		logFile.open(DLLNAME ".log", std::ofstream::out);
 	}
 	~Dll() {
 		logFile.close();
@@ -1304,17 +1301,18 @@ static void* Inject_g_pSteamClientGameServer() { return nullptr; }
 #pragma endregion
 
 // Struct holding arguments in registers
-struct alignas(16) Arguments {
-	alignas(16) __m64 rcx;
-	alignas(16) __m64 rdx;
-	alignas(16) __m64 r8;
-	alignas(16) __m64 r9;
-	alignas(16) __m128 xmm0;
-	alignas(16) __m128 xmm1;
-	alignas(16) __m128 xmm2;
-	alignas(16) __m128 xmm3;
-
-	BOOL toHex() {
+#ifdef BUILD64
+class alignas(16) Arguments {
+public:
+	void toHex() {
+		static_assert(offsetof(Arguments, rcx) == 0, "Incorrect offset for rcx");
+		static_assert(offsetof(Arguments, rdx) == 16, "Incorrect offset for rdx");
+		static_assert(offsetof(Arguments, r8) == 32, "Incorrect offset for r8");
+		static_assert(offsetof(Arguments, r9) == 48, "Incorrect offset for r9");
+		static_assert(offsetof(Arguments, xmm0) == 64, "Incorrect offset for xmm0");
+		static_assert(offsetof(Arguments, xmm1) == 80, "Incorrect offset for xmm1");
+		static_assert(offsetof(Arguments, xmm2) == 96, "Incorrect offset for xmm2");
+		static_assert(offsetof(Arguments, xmm3) == 112, "Incorrect offset for xmm3");
 		dll->LogFile() << std::hex;
 
 		dll->LogFile() << "rcx:" << std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 0);
@@ -1335,25 +1333,76 @@ struct alignas(16) Arguments {
 			<< std::setfill('0') << std::setw(16) << *(size_t*)((char*)this + 16 * 7);
 
 		dll->LogFile() << std::dec;
-		return TRUE;
 	}
-};
-static_assert(offsetof(Arguments, rcx) == 0, "Incorrect offset for rcx");
-static_assert(offsetof(Arguments, rdx) == 16, "Incorrect offset for rdx");
-static_assert(offsetof(Arguments, r8) == 32, "Incorrect offset for r8");
-static_assert(offsetof(Arguments, r9) == 48, "Incorrect offset for r9");
-static_assert(offsetof(Arguments, xmm0) == 64, "Incorrect offset for xmm0");
-static_assert(offsetof(Arguments, xmm1) == 80, "Incorrect offset for xmm1");
-static_assert(offsetof(Arguments, xmm2) == 96, "Incorrect offset for xmm2");
-static_assert(offsetof(Arguments, xmm3) == 112, "Incorrect offset for xmm3");
 
-// Reinterpret the register contents as another type
-template <typename TDest, typename TSrc>
-TDest arg_cast(TSrc& reg) {
-	// Cannot cast to wider type since register is 16 bytes max
-	static_assert(sizeof(TDest) <= 16);
-	return *(TDest*)&reg;
-}
+	// Gets ith argument, cast to TDest
+	template <typename TDest>
+	TDest getArg(int i, size_t) {
+		switch (i) {
+		case 0:
+			return *(TDest*)&rcx;
+		case 1:
+			return *(TDest*)&rdx;
+		case 2:
+			return *(TDest*)&r8;
+		case 3:
+			return *(TDest*)&r9;
+		default:
+			Alert("Invalid argument index");
+			return {};
+		}
+	}
+
+	// Gets ith floating point argument, cast to TDest
+	template <typename TDest>
+	TDest getArgf(int i, size_t) {
+		switch (i) {
+		case 0:
+			return *(TDest*)&xmm0;
+		case 1:
+			return *(TDest*)&xmm1;
+		case 2:
+			return *(TDest*)&xmm2;
+		case 3:
+			return *(TDest*)&xmm3;
+		default:
+			Alert("Invalid argument index");
+			return {};
+		}
+	}
+private:
+	alignas(16) uint8_t rcx[8];
+	alignas(16) uint8_t rdx[8];
+	alignas(16) uint8_t r8[8];
+	alignas(16) uint8_t r9[8];
+	alignas(16) uint8_t xmm0[16];
+	alignas(16) uint8_t xmm1[16];
+	alignas(16) uint8_t xmm2[16];
+	alignas(16) uint8_t xmm3[16];
+};
+#else
+class alignas(4) Arguments {
+public:
+	void toHex() {
+		static_assert(offsetof(Arguments, args) == 0, "Incorrect offset for args");
+		// We don't know how much we can read off the stack
+	}
+
+	// Gets argument at offset in stack to reach the argument, cast to TDest
+	template <typename TDest>
+	TDest getArg(int, size_t offset) {
+		return *(TDest*)(args + offset);
+	}
+
+	// Gets argument at offset in stack to reach the argument, cast to TDest
+	template <typename TDest>
+	TDest getArgf(int i, size_t offset) {
+		return getArg<TDest>(i, offset);
+	}
+private:
+	uint8_t* args;
+};
+#endif // BUILD64
 
 extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
 	size_t padding;
@@ -1373,7 +1422,7 @@ extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
 	// Align the register values
 	padding = 100 - strlen(OriginalDllExportsName(dllExport));
 	if (padding < 0) padding = 0;
-	for (int i = 0; i < padding; ++i) {
+	for (size_t i = 0; i < padding; ++i) {
 		dll->LogFile() << " ";
 	}
 	args->toHex();
@@ -1827,10 +1876,10 @@ extern "C" void* onExportFuncCall(Arguments * args, DllExport dllExport) {
 		break;
 	case DllExport::SteamAPI_ISteamClient_GetISteamApps:
 		result = Inject_SteamAPI_ISteamClient_GetISteamApps(
-			arg_cast<ISteamClient*>(args->rcx),
-			arg_cast<HSteamUser>(args->rdx),
-			arg_cast<HSteamPipe>(args->r8),
-			arg_cast<const char*>(args->r9));
+			args->getArg<ISteamClient*>(0, 0),
+			args->getArg<HSteamUser>(1, sizeof(ISteamClient*)),
+			args->getArg<HSteamPipe>(2, sizeof(ISteamClient*) + sizeof(HSteamUser)),
+			args->getArg<const char*>(3, sizeof(ISteamClient*) + sizeof(HSteamUser) + sizeof(HSteamPipe)));
 		break;
 	case DllExport::SteamAPI_ISteamClient_GetISteamController:
 		result = Inject_SteamAPI_ISteamClient_GetISteamController();
